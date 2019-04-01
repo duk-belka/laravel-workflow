@@ -10,7 +10,7 @@ namespace Tests {
     use Brexis\LaravelWorkflow\Events\LeaveEvent;
     use Brexis\LaravelWorkflow\Events\TransitionEvent;
     use PHPUnit\Framework\TestCase;
-    use Brexis\LaravelWorkflow\WorkflowRegistry;
+    use Brexis\LaravelWorkflow\WorkflowLibrarian;
     use Tests\Fixtures\TestObject;
 
     class WorkflowSubscriberTest extends TestCase
@@ -38,7 +38,7 @@ namespace Tests {
                 ],
             ];
 
-            $registry = new WorkflowRegistry($config);
+            $registry = new WorkflowLibrarian($config);
             $object = new TestObject;
             $workflow = $registry->get($object);
 

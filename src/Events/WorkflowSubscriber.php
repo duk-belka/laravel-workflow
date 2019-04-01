@@ -11,7 +11,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class WorkflowSubscriber implements EventSubscriberInterface
 {
-    public function guardEvent(SymfonyGuardEvent $event)
+    public function guardEvent(SymfonyGuardEvent $event): void
     {
         $workflowName   = $event->getWorkflowName();
         $transitionName = $event->getTransition()->getName();
@@ -22,7 +22,7 @@ class WorkflowSubscriber implements EventSubscriberInterface
         event(sprintf('workflow.%s.guard.%s', $workflowName, $transitionName), $event);
     }
 
-    public function leaveEvent(Event $event)
+    public function leaveEvent(Event $event): void
     {
         $places       = $event->getTransition()->getFroms();
         $workflowName = $event->getWorkflowName();
@@ -36,7 +36,7 @@ class WorkflowSubscriber implements EventSubscriberInterface
         }
     }
 
-    public function transitionEvent(Event $event)
+    public function transitionEvent(Event $event): void
     {
         $workflowName   = $event->getWorkflowName();
         $transitionName = $event->getTransition()->getName();
@@ -47,7 +47,7 @@ class WorkflowSubscriber implements EventSubscriberInterface
         event(sprintf('workflow.%s.transition.%s', $workflowName, $transitionName), $event);
     }
 
-    public function enterEvent(Event $event)
+    public function enterEvent(Event $event): void
     {
         $places       = $event->getTransition()->getTos();
         $workflowName = $event->getWorkflowName();
@@ -61,7 +61,7 @@ class WorkflowSubscriber implements EventSubscriberInterface
         }
     }
 
-    public function enteredEvent(Event $event)
+    public function enteredEvent(Event $event): void
     {
         $places       = $event->getTransition()->getTos();
         $workflowName = $event->getWorkflowName();
@@ -75,7 +75,7 @@ class WorkflowSubscriber implements EventSubscriberInterface
         }
     }
 
-    public function completedEvent(Event $event)
+    public function completedEvent(Event $event): void
     {
         $workflowName   = $event->getWorkflowName();
         $transitionName = $event->getTransition()->getName();

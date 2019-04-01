@@ -11,6 +11,6 @@ class GuardEvent extends BaseEvent
 {
     public function __construct(SymfonyGuardEvent $event)
     {
-        $this->originalEvent = $event;
+        parent::__construct($event);
     }
 }

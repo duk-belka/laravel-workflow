@@ -3,47 +3,46 @@
 namespace Brexis\LaravelWorkflow;
 
 use Illuminate\Support\ServiceProvider;
+use Brexis\LaravelWorkflow\Commands\WorkflowDumpCommand;
 
 /**
  * @author Boris Koumondji <brexis@yahoo.fr>
  */
-class WorkflowServiceProvider extends ServiceProvider
+final class WorkflowServiceProvider extends ServiceProvider
 {
     protected $commands = [
-        'Brexis\LaravelWorkflow\Commands\WorkflowDumpCommand',
+        WorkflowDumpCommand::class,
     ];
 
     /**
-    * Bootstrap the application services...
-    *
-    * @return void
-    */
+     * Bootstrap the application services...
+     *
+     * @return void
+     */
     public function boot()
     {
         $configPath = $this->configPath();
 
-        $this->publishes([
-            $configPath => config_path('workflow.php')
-        ], 'config');
+        $this->publishes(
+            [$configPath => config_path('workflow.php')], 'config'
+        );
     }
 
     /**
-    * Register the application services.
-    *
-    * @return void
-    */
+     * Register the application services.
+     *
+     * @return void
+     */
     public function register()
     {
-        $this->mergeConfigFrom(
-            $this->configPath(),
-            'workflow'
-        );
+        $this->mergeConfigFrom($this->configPath(), 'workflow');
 
         $this->commands($this->commands);
 
         $this->app->singleton(
-            'workflow', function ($app) {
-                return new WorkflowRegistry($app['config']->get('workflow'));
+            WorkflowLibrarianInterface::class,
+            function ($app) {
+                return new WorkflowLibrarian($app['config']->get('workflow'));
             }
         );
     }
@@ -54,12 +53,12 @@ class WorkflowServiceProvider extends ServiceProvider
     }
 
     /**
-    * Get the services provided by the provider.
-    *
-    * @return array
-    */
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
     public function provides()
     {
-        return ['workflow'];
+        return [WorkflowLibrarianInterface::class];
     }
 }

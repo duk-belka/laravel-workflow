@@ -2,13 +2,11 @@
 
 namespace Brexis\LaravelWorkflow\Commands;
 
+use Brexis\LaravelWorkflow\WorkflowLibrarianInterface;
 use Config;
-use Exception;
 use Illuminate\Console\Command;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Workflow\Dumper\GraphvizDumper;
-use Symfony\Component\Workflow\Workflow as SynfonyWorkflow;
-use Workflow;
 
 /**
  * @author Boris Koumondji <brexis@yahoo.fr>
@@ -36,31 +34,36 @@ class WorkflowDumpCommand extends Command
     /**
      * Execute the console command.
      *
+     * @param WorkflowLibrarianInterface $workflowRegistry
+     *
      * @return mixed
+     * @throws \Exception
      */
-    public function handle()
+    public function handle(WorkflowLibrarianInterface $workflowRegistry)
     {
-        $workflowName   = $this->argument('workflow');
-        $format         = $this->option('format');
-        $class          = $this->option('class');
-        $config         = Config::get('workflow');
+        $workflowName = $this->argument('workflow');
+        $format       = $this->option('format');
+        $class        = $this->option('class');
+        $config       = Config::get('workflow');
 
         if (!isset($config[$workflowName])) {
-            throw new Exception("Workflow $workflowName is not configured.");
+            throw new \Exception("Workflow $workflowName is not configured.");
         }
 
-        if (false === array_search($class, $config[$workflowName]['supports'])) {
-            throw new Exception("Workflow $workflowName has no support for class $class.".
-            ' Please specify a valid support class with the --class option.');
+        if (!\in_array($class, $config[$workflowName]['supports'], true)) {
+            throw new \Exception(
+                "Workflow $workflowName has no support for class $class." .
+                ' Please specify a valid support class with the --class option.'
+            );
         }
 
         $subject    = new $class;
-        $workflow   = Workflow::get($subject, $workflowName);
+        $workflow   = $workflowRegistry->get($subject, $workflowName);
         $definition = $workflow->getDefinition();
 
         $dumper = new GraphvizDumper();
 
-        $dotCommand = "dot -T$format -o $workflowName.$format";
+        $dotCommand = ['dot', "-T$format", '-o', "$workflowName.$format"];
 
         $process = new Process($dotCommand);
         $process->setInput($dumper->dump($definition));

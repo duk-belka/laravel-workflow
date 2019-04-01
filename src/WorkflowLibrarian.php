@@ -11,40 +11,30 @@ use Symfony\Component\Workflow\MarkingStore\MultipleStateMarkingStore;
 use Symfony\Component\Workflow\MarkingStore\SingleStateMarkingStore;
 use Symfony\Component\Workflow\Registry;
 use Symfony\Component\Workflow\StateMachine;
-use Symfony\Component\Workflow\SupportStrategy\ClassInstanceSupportStrategy;
+use Symfony\Component\Workflow\SupportStrategy\InstanceOfSupportStrategy;
 use Symfony\Component\Workflow\Transition;
 use Symfony\Component\Workflow\Workflow;
 
 /**
  * @author Boris Koumondji <brexis@yahoo.fr>
  */
-class WorkflowRegistry
+final class WorkflowLibrarian implements WorkflowLibrarianInterface
 {
-    /**
-     * @var Registry
-     */
     protected $registry;
-
-    /**
-     * @var array
-     */
     protected $config;
-
-    /**
-     * @var EventDispatcher
-     */
     protected $dispatcher;
 
     /**
      * WorkflowRegistry constructor
      *
      * @param  array $config
+     *
      * @throws \ReflectionException
      */
     public function __construct(array $config)
     {
-        $this->registry = new Registry();
-        $this->config = $config;
+        $this->registry   = new Registry();
+        $this->config     = $config;
         $this->dispatcher = new EventDispatcher();
 
         $subscriber = new WorkflowSubscriber();
@@ -55,53 +45,33 @@ class WorkflowRegistry
         }
     }
 
-    /**
-     * Return the $subject workflow
-     *
-     * @param  object $subject
-     * @param  string $workflowName
-     * @return Workflow
-     */
-    public function get($subject, $workflowName = null)
+    public function get($subject, ?string $workflowName = null): Workflow
     {
         return $this->registry->get($subject, $workflowName);
     }
 
-    /**
-     * Add a workflow to the subject
-     *
-     * @param Workflow $workflow
-     * @param string   $supportStrategy
-     */
-    public function add(Workflow $workflow, $supportStrategy)
+    public function add(Workflow $workflow, string $supportStrategy): void
     {
-        $this->registry->add($workflow, new ClassInstanceSupportStrategy($supportStrategy));
+        $this->registry->addWorkflow($workflow, new InstanceOfSupportStrategy($supportStrategy));
     }
 
-    /**
-     * Add a workflow to the registry from array
-     *
-     * @param  string $name
-     * @param  array  $workflowData
-     * @throws \ReflectionException
-     */
-    public function addFromArray($name, array $workflowData)
+    public function addFromArray(string $name, array $workflowData): void
     {
         $builder = new DefinitionBuilder($workflowData['places']);
 
         foreach ($workflowData['transitions'] as $transitionName => $transition) {
-            if (!is_string($transitionName)) {
+            if (!\is_string($transitionName)) {
                 $transitionName = $transition['name'];
             }
 
-            foreach ((array)$transition['from'] as $form) {
+            foreach ((array) $transition['from'] as $form) {
                 $builder->addTransition(new Transition($transitionName, $form, $transition['to']));
             }
         }
 
-        $definition = $builder->build();
+        $definition   = $builder->build();
         $markingStore = $this->getMarkingStoreInstance($workflowData);
-        $workflow = $this->getWorkflowInstance($name, $workflowData, $definition, $markingStore);
+        $workflow     = $this->getWorkflowInstance($name, $workflowData, $definition, $markingStore);
 
         foreach ($workflowData['supports'] as $supportedClass) {
             $this->add($workflow, $supportedClass);
@@ -115,14 +85,15 @@ class WorkflowRegistry
      * @param  array                 $workflowData
      * @param  Definition            $definition
      * @param  MarkingStoreInterface $markingStore
+     *
      * @return Workflow
      */
     protected function getWorkflowInstance(
-        $name,
+        string $name,
         array $workflowData,
         Definition $definition,
         MarkingStoreInterface $markingStore
-    ) {
+    ): Workflow {
         if (isset($workflowData['class'])) {
             $className = $workflowData['class'];
         } elseif (isset($workflowData['type']) && $workflowData['type'] === 'state_machine') {
@@ -138,13 +109,14 @@ class WorkflowRegistry
      * Return the making store instance
      *
      * @param  array $workflowData
+     *
      * @return MarkingStoreInterface
      * @throws \ReflectionException
      */
     protected function getMarkingStoreInstance(array $workflowData)
     {
-        $markingStoreData = isset($workflowData['marking_store']) ? $workflowData['marking_store'] : [];
-        $arguments = isset($markingStoreData['arguments']) ? $markingStoreData['arguments'] : [];
+        $markingStoreData = $workflowData['marking_store'] ?? [];
+        $arguments        = $markingStoreData['arguments'] ?? [];
 
         if (isset($markingStoreData['class'])) {
             $className = $markingStoreData['class'];

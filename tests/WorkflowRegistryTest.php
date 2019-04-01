@@ -2,7 +2,7 @@
 namespace Tests;
 
 use PHPUnit\Framework\TestCase;
-use Brexis\LaravelWorkflow\WorkflowRegistry;
+use Brexis\LaravelWorkflow\WorkflowLibrarian;
 use ReflectionProperty;
 use Symfony\Component\Workflow\MarkingStore\MultipleStateMarkingStore;
 use Symfony\Component\Workflow\MarkingStore\SingleStateMarkingStore;
@@ -31,7 +31,7 @@ class WorkflowRegistryTest extends TestCase
             ]
         ];
 
-        $registry   = new WorkflowRegistry($config);
+        $registry   = new WorkflowLibrarian($config);
         $subject    = new TestObject;
         $workflow   = $registry->get($subject);
 
@@ -67,7 +67,7 @@ class WorkflowRegistryTest extends TestCase
             ]
         ];
 
-        $registry   = new WorkflowRegistry($config);
+        $registry   = new WorkflowLibrarian($config);
         $subject     = new TestObject;
         $workflow   = $registry->get($subject);
 
@@ -107,7 +107,7 @@ class WorkflowRegistryTest extends TestCase
             ]
         ];
 
-        $registry = new WorkflowRegistry($config);
+        $registry = new WorkflowLibrarian($config);
         $subject  = new TestObject;
         $workflow = $registry->get($subject);
 
@@ -151,7 +151,7 @@ class WorkflowRegistryTest extends TestCase
             ],
         ];
 
-        $registry = new WorkflowRegistry($config);
+        $registry = new WorkflowLibrarian($config);
         $subject = new TestObject;
         $workflow = $registry->get($subject);
 
